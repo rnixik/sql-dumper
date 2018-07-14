@@ -30,7 +30,7 @@ var testsTable = []testTableTripl{
 		},
 	},
 	{
-		tablesPart:  "routes",
+		tablesPart:  "routes:",
 		expectedErr: true,
 	},
 	{
@@ -83,6 +83,10 @@ var testsIntervals = []testIntervalsTripl{
 	},
 	{
 		intervalsPart: "1-a",
+		expectedErr:   true,
+	},
+	{
+		intervalsPart: "a-1",
 		expectedErr:   true,
 	},
 	{
@@ -140,6 +144,10 @@ var testsRelations = []testRelationsTripl{
 	},
 	{
 		relationsPart: "routes.id=stations_for_routes.",
+		expectedErr:   true,
+	},
+	{
+		relationsPart: "routes.id=stations_for_routes.id.id",
 		expectedErr:   true,
 	},
 	{

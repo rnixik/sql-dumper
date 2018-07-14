@@ -28,21 +28,21 @@ func ParseRequest(tablesPart string, intervalPart string, relationsPart string) 
 }
 
 func parseTablesPart(tablesPart string) (tables []*QueryTable, err error) {
-	tables = make([]*QueryTable, 0)
-	tablesDefinitions := strings.Split(tablesPart, ";")
-	if len(tablesDefinitions) == 0 {
+	if tablesPart == "" {
 		return nil, fmt.Errorf("Tables part is empty")
 	}
+	tables = make([]*QueryTable, 0)
+	tablesDefinitions := strings.Split(tablesPart, ";")
 	for _, tableDefinition := range tablesDefinitions {
 		tableDefinitionParts := strings.Split(tableDefinition, ":")
 		if len(tableDefinitionParts) != 2 {
 			return nil, fmt.Errorf("Table definition should be in format 'table:column1,column2,...' Got %s", tableDefinition)
 		}
-		tableName := tableDefinitionParts[0]
-		columns := strings.Split(tableDefinitionParts[1], ",")
-		if len(columns) == 0 {
+		if tableDefinitionParts[1] == "" {
 			return nil, fmt.Errorf("Table definition should contain one column at least. Got %s", tableDefinition)
 		}
+		tableName := tableDefinitionParts[0]
+		columns := strings.Split(tableDefinitionParts[1], ",")
 		queryTable := &QueryTable{tableName, columns}
 		tables = append(tables, queryTable)
 	}
