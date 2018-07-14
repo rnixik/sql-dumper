@@ -58,7 +58,7 @@ func main() {
 }
 
 func showHelp() {
-	fmt.Println("Dumps data from DB into file.")
+	fmt.Println("Dumps data from DB.")
 	fmt.Println("Usage:")
 	fmt.Println("    sql-dumper \"tables definitions\" \"primary interval\" [\"relations definitions\"]")
 	fmt.Println("")
