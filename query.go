@@ -8,11 +8,13 @@ import (
 	"strings"
 )
 
+// QueryTable represents definition of one table for sql query
 type QueryTable struct {
 	name    string
 	columns []string
 }
 
+// QueryRelation represents definition of relations between tables for sql query
 type QueryRelation struct {
 	table1  string
 	column1 string
@@ -20,12 +22,14 @@ type QueryRelation struct {
 	column2 string
 }
 
+// Query represents information for building final sql queries
 type Query struct {
 	tables          []*QueryTable
 	relations       []*QueryRelation
 	primaryInterval []int64
 }
 
+// ConnectionSettings contains settings for DB connection
 type ConnectionSettings struct {
 	driver   string
 	user     string
@@ -34,6 +38,7 @@ type ConnectionSettings struct {
 	dbhost   string
 }
 
+// QueryResult returns rows of data from DB
 func (q *Query) QueryResult(conset *ConnectionSettings) (err error) {
 	db, err := getDb(conset)
 	if err != nil {
@@ -97,7 +102,7 @@ func (q *Query) toSqlForRelation(qt *QueryTable) (str string, err error) {
 	}
 	str = "SELECT " + qt.sqlPartForSelectColumns() + "\n"
 	str += "FROM " + sqlTable(qt.name) + "\n"
-	str += "WHERE " + leftTableColumn + " IN \n"
+	str += "WHERE " + leftTableColumn + " IN\n"
 	str += "(\n" + subquery + "\n)"
 	return
 }
@@ -108,10 +113,6 @@ func (qt *QueryTable) sqlPartForSelectColumns() string {
 		selectFields = append(selectFields, "`"+qt.name+"`.`"+qtcol+"`")
 	}
 	return strings.Join(selectFields, ", ")
-}
-
-func (qt *QueryTable) sqlPartForTableName() string {
-	return "`" + qt.name + "`"
 }
 
 func sqlTable(name string) string {
