@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
@@ -38,6 +39,15 @@ type ConnectionSettings struct {
 	dbhost   string
 }
 
+type TableColumnDDL struct {
+	Field   string         `db:"Field"`
+	Type    string         `db:"Type"`
+	Null    string         `db:"Null"`
+	Key     string         `db:"Key"`
+	Default sql.NullString `db:"Default"`
+	Extra   string         `db:"Extra"`
+}
+
 // QueryResult returns rows of data from DB
 func (q *Query) QueryResult(conset *ConnectionSettings, writer DataWriter) (err error) {
 	db, err := getDb(conset)
@@ -62,6 +72,12 @@ func (q *Query) QueryResult(conset *ConnectionSettings, writer DataWriter) (err 
 		}
 		writer.Write(resultsMaps)
 	}
+
+	_, err = q.toDDL(db)
+	if err != nil {
+		return
+	}
+
 	return
 }
 
@@ -105,6 +121,94 @@ func (q *Query) toSqlForRelation(qt *QueryTable) (str string, err error) {
 	str += "WHERE " + leftTableColumn + " IN\n"
 	str += "(\n" + subquery + "\n)"
 	return
+}
+
+func (q *Query) toDDL(db *sqlx.DB) (ddl string, err error) {
+	for _, qt := range q.tables {
+		tableDescribtion, err := getTableDescription(db, qt.name)
+		if err != nil {
+			return "", err
+		}
+		tableDDL, err := makeDDLFromTableDescription(qt.name, tableDescribtion, qt.columns, q.relations)
+		if err != nil {
+			return "", err
+		}
+		fmt.Printf("%s\n", tableDDL)
+	}
+	return "", nil
+}
+
+func getTableDescription(db *sqlx.DB, tableName string) (tableDescribtion []TableColumnDDL, err error) {
+	columnsDDL := []TableColumnDDL{}
+	err = db.Select(&columnsDDL, "DESCRIBE "+sqlTable(tableName))
+	return columnsDDL, err
+}
+
+func makeDDLFromTableDescription(tableName string, tableDescribtion []TableColumnDDL, columnsOnly []string, relations []*QueryRelation) (tableDDL string, err error) {
+	columnsDDLs := []string{}
+	primaryKeys := []string{}
+	indexColumns := []string{}
+	uniqueColumns := []string{}
+	possibleFKDefs := map[string]string{}
+	for _, columnDescr := range tableDescribtion {
+		if !contains(columnsOnly, columnDescr.Field) {
+			continue
+		}
+		columnDDL := sqlColumn(columnDescr.Field) + " " + columnDescr.Type + " "
+		if columnDescr.Null == "YES" {
+			columnDDL += "NULL"
+		} else {
+			columnDDL += "NOT NULL"
+		}
+		if columnDescr.Default.Valid {
+			columnDDL += " "
+			columnDDL += "DEFAULT '" + columnDescr.Default.String + "'"
+		}
+		columnsDDLs = append(columnsDDLs, columnDDL)
+		if columnDescr.Key == "PRI" {
+			primaryKeys = append(primaryKeys, sqlColumn(columnDescr.Field))
+		}
+		if columnDescr.Key == "MUL" {
+			indexColumns = append(indexColumns, sqlColumn(columnDescr.Field))
+		}
+		if columnDescr.Key == "UNI" {
+			uniqueColumns = append(uniqueColumns, sqlColumn(columnDescr.Field))
+		}
+		rTable, rColumn, _ := findRelation(relations, tableName, columnDescr.Field)
+		if rColumn != "" {
+			possibleFKDefs[sqlColumn(columnDescr.Field)] = "CONSTRAINT " + sqlColumn(columnDescr.Field) + " FOREIGN KEY (" + sqlColumn(rColumn) + ") REFERENCES " + sqlTable(rTable) + " (`id`) ON DELETE CASCADE"
+		}
+	}
+
+	if len(columnsDDLs) == 0 {
+		return "", fmt.Errorf("Table '%s' contains 0 of specified fields")
+	}
+
+	rows := columnsDDLs
+	if len(primaryKeys) > 0 {
+		rows = append(rows, "PRIMARY KEY ("+strings.Join(primaryKeys, ", ")+")")
+	}
+	for _, ind := range indexColumns {
+		rows = append(rows, "INDEX "+ind+" ("+ind+")")
+	}
+	for _, unq := range uniqueColumns {
+		rows = append(rows, "UNIQUE INDEX "+unq+" ("+unq+")")
+	}
+	for column, fk := range possibleFKDefs {
+		if !(len(primaryKeys) == 1 && primaryKeys[0] == column) {
+			rows = append(rows, fk)
+		}
+	}
+
+	for i, row := range rows {
+		rows[i] = "    " + row
+	}
+
+	tableDDL = "CREATE TABLE " + sqlTable(tableName) + " (\n"
+	tableDDL += strings.Join(rows, ",\n")
+	tableDDL += "\n"
+	tableDDL += ");"
+	return tableDDL, nil
 }
 
 func (qt *QueryTable) sqlPartForSelectColumns() string {
@@ -174,4 +278,32 @@ func (q *Query) toSqlSubQueryForRelation(mainTable *QueryTable) (subquery string
 	}
 	subquery += "(" + strings.Join(whereConditions, ") AND (") + ")"
 	return
+}
+
+func findRelation(relations []*QueryRelation, tableName string, tableColumn string) (rightTableName string, rightTableColumn string, err error) {
+	for _, qr := range relations {
+		if qr.table1 == tableName && qr.column1 == tableColumn {
+			rightTableName = qr.table2
+			rightTableColumn = qr.column2
+			break
+		}
+		if qr.table2 == tableName && qr.column2 == tableColumn {
+			rightTableName = qr.table1
+			rightTableColumn = qr.column1
+			break
+		}
+	}
+	if rightTableColumn == "" {
+		return "", "", fmt.Errorf("Cannot find relation for column '%s' of table '%s'", tableColumn, tableName)
+	}
+	return
+}
+
+func contains(haystack []string, needle string) bool {
+	for _, a := range haystack {
+		if a == needle {
+			return true
+		}
+	}
+	return false
 }
