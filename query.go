@@ -39,7 +39,7 @@ type ConnectionSettings struct {
 }
 
 // QueryResult returns rows of data from DB
-func (q *Query) QueryResult(conset *ConnectionSettings) (err error) {
+func (q *Query) QueryResult(conset *ConnectionSettings, writer DataWriter) (err error) {
 	db, err := getDb(conset)
 	if err != nil {
 		log.Fatal(err)
@@ -60,25 +60,25 @@ func (q *Query) QueryResult(conset *ConnectionSettings) (err error) {
 		if err != nil {
 			return err
 		}
-		DumpResults(resultsMaps)
+		writer.Write(resultsMaps)
 	}
 	return
 }
 
-func dbSelect(db *sqlx.DB, query string, args ...interface{}) (resultsMaps []map[string]interface{}, err error) {
+func dbSelect(db *sqlx.DB, query string, args ...interface{}) (resultsMaps []*map[string]interface{}, err error) {
 	rows, err := db.Queryx(query, args...)
 	if err != nil {
 		return
 	}
 
-	resultsMaps = make([]map[string]interface{}, 0)
+	resultsMaps = make([]*map[string]interface{}, 0)
 	for rows.Next() {
 		results := make(map[string]interface{})
 		err = rows.MapScan(results)
 		if err != nil {
 			return
 		}
-		resultsMaps = append(resultsMaps, results)
+		resultsMaps = append(resultsMaps, &results)
 	}
 	return resultsMaps, nil
 }

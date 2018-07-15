@@ -50,7 +50,10 @@ func main() {
 		fmt.Print(err)
 		os.Exit(1)
 	}
-	err = query.QueryResult(conset)
+
+	writer := &SimpleWriter{}
+
+	err = query.QueryResult(conset, writer)
 	if err != nil {
 		fmt.Print(err)
 		os.Exit(1)

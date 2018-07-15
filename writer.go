@@ -4,9 +4,16 @@ import (
 	"fmt"
 )
 
-func DumpResults(results []map[string]interface{}) {
+type DataWriter interface {
+	Write(results []*map[string]interface{}) (err error)
+}
+
+type SimpleWriter struct {
+}
+
+func (w *SimpleWriter) Write(results []*map[string]interface{}) (err error) {
 	for _, row := range results {
-		for field, v := range row {
+		for field, v := range *row {
 			value := ""
 			switch typedValue := v.(type) {
 			case int:
@@ -32,4 +39,5 @@ func DumpResults(results []map[string]interface{}) {
 		}
 		fmt.Println("")
 	}
+	return nil
 }
