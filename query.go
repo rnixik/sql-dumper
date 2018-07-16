@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 	"log"
 	"strings"
@@ -48,9 +47,11 @@ type TableColumnDDL struct {
 	Extra   string         `db:"Extra"`
 }
 
+type dbConnector func(conset *ConnectionSettings) (db *sqlx.DB, err error)
+
 // QueryResult returns rows of data from DB
-func (q *Query) QueryResult(conset *ConnectionSettings, writer DataWriter) (err error) {
-	db, err := getDb(conset)
+func (q *Query) QueryResult(dbConnect dbConnector, conset *ConnectionSettings, writer DataWriter) (err error) {
+	db, err := dbConnect(conset)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -97,11 +98,6 @@ func dbSelect(db *sqlx.DB, query string, args ...interface{}) (resultsMaps []*ma
 		resultsMaps = append(resultsMaps, &results)
 	}
 	return resultsMaps, nil
-}
-
-func getDb(conset *ConnectionSettings) (db *sqlx.DB, err error) {
-	dsn := conset.user + ":" + conset.password + "@tcp(" + conset.dbhost + ")/" + conset.dbname
-	return sqlx.Open(conset.driver, dsn)
 }
 
 func (q *Query) toSqlForSingleTable(qt *QueryTable) (str string, err error) {
@@ -181,7 +177,7 @@ func makeDDLFromTableDescription(tableName string, tableDescribtion []TableColum
 	}
 
 	if len(columnsDDLs) == 0 {
-		return "", fmt.Errorf("Table '%s' contains 0 of specified fields")
+		return "", fmt.Errorf("Table '%s' contains 0 of specified fields", tableName)
 	}
 
 	rows := columnsDDLs

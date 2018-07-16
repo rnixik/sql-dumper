@@ -2,16 +2,11 @@ package main
 
 import (
 	"fmt"
+	"github.com/jmoiron/sqlx"
+	"gopkg.in/DATA-DOG/go-sqlmock.v1"
+	"reflect"
 	"testing"
 )
-
-type testToSqlSubQueryForRelationInput struct {
-	query                   *Query
-	mainTable               *QueryTable
-	expectedSubquery        string
-	expectedLeftTableColumn string
-	expectedErr             bool
-}
 
 var typicalQuery = &Query{
 	tables: []*QueryTable{
@@ -24,6 +19,100 @@ var typicalQuery = &Query{
 		{"stations", "id", "stations_for_routes", "station_id"},
 	},
 	primaryInterval: []int64{1000, 2000},
+}
+
+func TestQueryResult(t *testing.T) {
+	mockDB, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer mockDB.Close()
+	sqlxDB := sqlx.NewDb(mockDB, "sqlmock")
+
+	dbConnectMock := func(conset *ConnectionSettings) (db *sqlx.DB, err error) {
+		return sqlxDB, nil
+	}
+
+	mock.ExpectQuery("SELECT (.+) FROM `routes` WHERE `routes`.`id` BETWEEN \\? AND \\?").
+		WithArgs(1000, 2000).
+		WillReturnRows(sqlmock.NewRows([]string{"id", "name"}))
+
+	mock.ExpectQuery("SELECT (.+) FROM `stations` WHERE `stations`.`id` IN (.+)").
+		WithArgs(1000, 2000).
+		WillReturnRows(sqlmock.NewRows([]string{"id", "name"}))
+
+	mock.ExpectQuery("SELECT (.+) FROM `stations_for_routes` WHERE `stations_for_routes`.`route_id` IN (.+)").
+		WithArgs(1000, 2000).
+		WillReturnRows(sqlmock.NewRows([]string{"station_id", "route_id", "ord"}))
+
+	mock.ExpectQuery("DESCRIBE `routes`").
+		WillReturnRows(
+			sqlmock.NewRows([]string{"Field", "Type", "Null", "Key", "Default", "Extra"}).AddRow("id", "bigint(20)", "NO", "PRI", nil, ""),
+		)
+
+	mock.ExpectQuery("DESCRIBE `stations`").
+		WillReturnRows(
+			sqlmock.NewRows([]string{"Field", "Type", "Null", "Key", "Default", "Extra"}).AddRow("id", "bigint(20)", "NO", "PRI", nil, ""),
+		)
+
+	mock.ExpectQuery("DESCRIBE `stations_for_routes`").
+		WillReturnRows(
+			sqlmock.NewRows([]string{"Field", "Type", "Null", "Key", "Default", "Extra"}).AddRow("station_id", "bigint(20)", "NO", "PRI", nil, ""),
+		)
+
+	err = typicalQuery.QueryResult(dbConnectMock, &ConnectionSettings{}, &SimpleWriter{})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+		return
+	}
+}
+
+func TestDbSelect(t *testing.T) {
+	mockDB, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer mockDB.Close()
+	sqlxDB := sqlx.NewDb(mockDB, "sqlmock")
+
+	columns := []string{"id", "name"}
+
+	mock.ExpectQuery("SELECT (.+) FROM some_table WHERE id BETWEEN \\? AND \\?").
+		WithArgs(10, 20).
+		WillReturnRows(sqlmock.NewRows(columns).AddRow(1, "name1").AddRow(2, "name2"))
+
+	resultsMaps, err := dbSelect(sqlxDB, "SELECT id, name FROM some_table WHERE id BETWEEN ? AND ?", 10, 20)
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+		return
+	}
+
+	expectedResultsMaps := []*map[string]interface{}{
+		&map[string]interface{}{"id": 1, "name": "name1"},
+		&map[string]interface{}{"id": 2, "name": "name2"},
+	}
+
+	if !reflect.DeepEqual(expectedResultsMaps, resultsMaps) {
+		t.Errorf("Unexpected results")
+		return
+	}
+
+	mock.ExpectQuery("SELECT (.+) FROM some_table WHERE id BETWEEN \\? AND \\?").
+		WithArgs(10, 20).WillReturnError(fmt.Errorf("Some error"))
+
+	_, err = dbSelect(sqlxDB, "SELECT id, name FROM some_table WHERE id BETWEEN ? AND ?", 10, 20)
+	if err == nil {
+		t.Errorf("Expected error, but got nil")
+		return
+	}
+}
+
+type testToSqlSubQueryForRelationInput struct {
+	query                   *Query
+	mainTable               *QueryTable
+	expectedSubquery        string
+	expectedLeftTableColumn string
+	expectedErr             bool
 }
 
 var testsToSqlSubQueryForRelation = []testToSqlSubQueryForRelationInput{

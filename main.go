@@ -3,9 +3,16 @@ package main
 import (
 	"flag"
 	"fmt"
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx"
 	"gopkg.in/ini.v1"
 	"os"
 )
+
+func dbConnect(conset *ConnectionSettings) (db *sqlx.DB, err error) {
+	dsn := conset.user + ":" + conset.password + "@tcp(" + conset.dbhost + ")/" + conset.dbname
+	return sqlx.Open(conset.driver, dsn)
+}
 
 func main() {
 	configFile := flag.String("config", ".env", "source label file")
@@ -53,7 +60,7 @@ func main() {
 
 	writer := &SimpleWriter{}
 
-	err = query.QueryResult(conset, writer)
+	err = query.QueryResult(dbConnect, conset, writer)
 	if err != nil {
 		fmt.Print(err)
 		os.Exit(1)
