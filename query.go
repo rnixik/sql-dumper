@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/jmoiron/sqlx"
-	"log"
 	"strings"
 )
 
@@ -53,20 +52,20 @@ type dbConnector func(conset *ConnectionSettings) (db *sqlx.DB, err error)
 func (q *Query) QueryResult(dbConnect dbConnector, conset *ConnectionSettings, writer DataWriter) (err error) {
 	db, err := dbConnect(conset)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	var query string
 	for i, qt := range q.tables {
 		if i == 0 {
-			query, err = q.toSqlForSingleTable(qt)
+			query = q.toSqlForSingleTable(qt)
 		} else {
 			query, err = q.toSqlForRelation(qt)
 		}
 		if err != nil {
 			return
 		}
-		fmt.Println(query)
+		//fmt.Println(query)
 		resultsMaps, err := dbSelect(db, query, q.primaryInterval[0], q.primaryInterval[1])
 		if err != nil {
 			return err
@@ -100,11 +99,11 @@ func dbSelect(db *sqlx.DB, query string, args ...interface{}) (resultsMaps []*ma
 	return resultsMaps, nil
 }
 
-func (q *Query) toSqlForSingleTable(qt *QueryTable) (str string, err error) {
+func (q *Query) toSqlForSingleTable(qt *QueryTable) (str string) {
 	str = "SELECT " + qt.sqlPartForSelectColumns() + "\n"
 	str += "FROM " + sqlTable(qt.name) + "\n"
 	str += "WHERE " + sqlTableAndColumn(qt.name, qt.columns[0]) + " BETWEEN ? AND ?"
-	return str, nil
+	return str
 }
 
 func (q *Query) toSqlForRelation(qt *QueryTable) (str string, err error) {
@@ -129,9 +128,10 @@ func (q *Query) toDDL(db *sqlx.DB) (ddl string, err error) {
 		if err != nil {
 			return "", err
 		}
-		fmt.Printf("%s\n", tableDDL)
+		//fmt.Printf("%s\n", tableDDL)
+		ddl += tableDDL
 	}
-	return "", nil
+	return ddl, nil
 }
 
 func getTableDescription(db *sqlx.DB, tableName string) (tableDescribtion []TableColumnDDL, err error) {
@@ -293,13 +293,4 @@ func findRelation(relations []*QueryRelation, tableName string, tableColumn stri
 		return "", "", fmt.Errorf("Cannot find relation for column '%s' of table '%s'", tableColumn, tableName)
 	}
 	return
-}
-
-func contains(haystack []string, needle string) bool {
-	for _, a := range haystack {
-		if a == needle {
-			return true
-		}
-	}
-	return false
 }
