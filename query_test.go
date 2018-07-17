@@ -109,7 +109,7 @@ func TestQueryResultConnectionError(t *testing.T) {
 func TestQueryResultQueryError(t *testing.T) {
 	mockDB, mock, err := sqlmock.New()
 	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+		t.Fatalf("An error '%s' was not expected when opening a stub database connection", err)
 	}
 	defer mockDB.Close()
 	sqlxDB := sqlx.NewDb(mockDB, "sqlmock")
@@ -119,6 +119,33 @@ func TestQueryResultQueryError(t *testing.T) {
 	}
 
 	mock.ExpectQuery("SELECT (.+) FROM `routes` WHERE `routes`.`id` BETWEEN \\? AND \\?").
+		WithArgs(1000, 2000).
+		WillReturnError(fmt.Errorf("Some error"))
+
+	err = typicalQuery.QueryResult(dbConnectMock, &ConnectionSettings{}, &EmptyWriter{})
+	if err == nil {
+		t.Errorf("Expected error, but got nil")
+		return
+	}
+}
+
+func TestQueryResultRelationError(t *testing.T) {
+	mockDB, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("An error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer mockDB.Close()
+	sqlxDB := sqlx.NewDb(mockDB, "sqlmock")
+
+	dbConnectMock := func(conset *ConnectionSettings) (db *sqlx.DB, err error) {
+		return sqlxDB, nil
+	}
+
+	mock.ExpectQuery("SELECT (.+) FROM `routes` WHERE `routes`.`id` BETWEEN \\? AND \\?").
+		WithArgs(1000, 2000).
+		WillReturnRows(sqlmock.NewRows([]string{"id", "name"}))
+
+	mock.ExpectQuery("SELECT (.+) FROM `stations` WHERE `stations`.`id` IN (.+)").
 		WithArgs(1000, 2000).
 		WillReturnError(fmt.Errorf("Some error"))
 
