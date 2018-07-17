@@ -75,6 +75,26 @@ func TestQueryResult(t *testing.T) {
 	}
 }
 
+func TestQueryResultIntervalError(t *testing.T) {
+	dbConnect := func(conset *ConnectionSettings) (db *sqlx.DB, err error) {
+		return nil, nil
+	}
+
+	var simpleQuery = &Query{
+		tables: []*QueryTable{
+			&QueryTable{"some_table", []string{"id"}},
+		},
+		relations:       []*QueryRelation{},
+		primaryInterval: []int64{},
+	}
+
+	err := simpleQuery.QueryResult(dbConnect, &ConnectionSettings{}, &SimpleWriter{})
+	if err == nil {
+		t.Errorf("Expected error, but got nil")
+		return
+	}
+}
+
 func TestQueryResultConnectionError(t *testing.T) {
 	dbConnect := func(conset *ConnectionSettings) (db *sqlx.DB, err error) {
 		return nil, fmt.Errorf("Some DB error")
@@ -121,10 +141,22 @@ func TestQueryResultDDLError(t *testing.T) {
 		return sqlxDB, nil
 	}
 
-	mock.ExpectQuery("DESCRIBE `routes`").
+	var simpleQuery = &Query{
+		tables: []*QueryTable{
+			&QueryTable{"some_table", []string{"id"}},
+		},
+		relations:       []*QueryRelation{},
+		primaryInterval: []int64{1, 2},
+	}
+
+	mock.ExpectQuery("SELECT (.+) FROM `some_table`").
+		WithArgs(1, 2).
+		WillReturnRows(sqlmock.NewRows([]string{"id", "name"}))
+
+	mock.ExpectQuery("DESCRIBE `some_table`").
 		WillReturnError(fmt.Errorf("Some error"))
 
-	err = typicalQuery.QueryResult(dbConnectMock, &ConnectionSettings{}, &EmptyWriter{})
+	err = simpleQuery.QueryResult(dbConnectMock, &ConnectionSettings{}, &EmptyWriter{})
 	if err == nil {
 		t.Errorf("Expected error, but got nil")
 		return

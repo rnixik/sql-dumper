@@ -50,6 +50,10 @@ type dbConnector func(conset *ConnectionSettings) (db *sqlx.DB, err error)
 
 // QueryResult returns rows of data from DB
 func (q *Query) QueryResult(dbConnect dbConnector, conset *ConnectionSettings, writer DataWriter) (err error) {
+	if len(q.primaryInterval) != 2 {
+		return fmt.Errorf("primaryInterval should contain two values")
+	}
+
 	db, err := dbConnect(conset)
 	if err != nil {
 		return err
