@@ -94,10 +94,7 @@ func dbSelect(db *sqlx.DB, query string, args ...interface{}) (resultsMaps []*ma
 	resultsMaps = make([]*map[string]interface{}, 0)
 	for rows.Next() {
 		results := make(map[string]interface{})
-		err = rows.MapScan(results)
-		if err != nil {
-			return
-		}
+		rows.MapScan(results)
 		resultsMaps = append(resultsMaps, &results)
 	}
 	return resultsMaps, nil

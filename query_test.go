@@ -141,15 +141,22 @@ func TestQueryResultRelationError(t *testing.T) {
 		return sqlxDB, nil
 	}
 
+	queryWithBadRelations := &Query{
+		tables: []*QueryTable{
+			&QueryTable{"routes", []string{"id", "name"}},
+			&QueryTable{"stations", []string{"id", "sname"}},
+		},
+		relations: []*QueryRelation{
+			{"routes", "id", "stations_for_routes", "route_id"},
+		},
+		primaryInterval: []int64{1000, 2000},
+	}
+
 	mock.ExpectQuery("SELECT (.+) FROM `routes` WHERE `routes`.`id` BETWEEN \\? AND \\?").
 		WithArgs(1000, 2000).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "name"}))
 
-	mock.ExpectQuery("SELECT (.+) FROM `stations` WHERE `stations`.`id` IN (.+)").
-		WithArgs(1000, 2000).
-		WillReturnError(fmt.Errorf("Some error"))
-
-	err = typicalQuery.QueryResult(dbConnectMock, &ConnectionSettings{}, &EmptyWriter{})
+	err = queryWithBadRelations.QueryResult(dbConnectMock, &ConnectionSettings{}, &EmptyWriter{})
 	if err == nil {
 		t.Errorf("Expected error, but got nil")
 		return
