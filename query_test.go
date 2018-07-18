@@ -25,7 +25,11 @@ var typicalQuery = &Query{
 type EmptyWriter struct {
 }
 
-func (w *EmptyWriter) Write(_ []*map[string]interface{}) (err error) {
+func (w *EmptyWriter) WriteRows(_ string, _ []string, _ []*map[string]interface{}) (err error) {
+	return nil
+}
+
+func (w *EmptyWriter) WriteDDL(_ string, _ string) (err error) {
 	return nil
 }
 
@@ -41,18 +45,6 @@ func TestQueryResult(t *testing.T) {
 		return sqlxDB, nil
 	}
 
-	mock.ExpectQuery("SELECT (.+) FROM `routes` WHERE `routes`.`id` BETWEEN \\? AND \\?").
-		WithArgs(1000, 2000).
-		WillReturnRows(sqlmock.NewRows([]string{"id", "name"}))
-
-	mock.ExpectQuery("SELECT (.+) FROM `stations` WHERE `stations`.`id` IN (.+)").
-		WithArgs(1000, 2000).
-		WillReturnRows(sqlmock.NewRows([]string{"id", "name"}))
-
-	mock.ExpectQuery("SELECT (.+) FROM `stations_for_routes` WHERE `stations_for_routes`.`route_id` IN (.+)").
-		WithArgs(1000, 2000).
-		WillReturnRows(sqlmock.NewRows([]string{"station_id", "route_id", "ord"}))
-
 	mock.ExpectQuery("DESCRIBE `routes`").
 		WillReturnRows(
 			sqlmock.NewRows([]string{"Field", "Type", "Null", "Key", "Default", "Extra"}).AddRow("id", "bigint(20)", "NO", "PRI", nil, ""),
@@ -67,6 +59,18 @@ func TestQueryResult(t *testing.T) {
 		WillReturnRows(
 			sqlmock.NewRows([]string{"Field", "Type", "Null", "Key", "Default", "Extra"}).AddRow("station_id", "bigint(20)", "NO", "PRI", nil, ""),
 		)
+
+	mock.ExpectQuery("SELECT (.+) FROM `routes` WHERE `routes`.`id` BETWEEN \\? AND \\?").
+		WithArgs(1000, 2000).
+		WillReturnRows(sqlmock.NewRows([]string{"id", "name"}))
+
+	mock.ExpectQuery("SELECT (.+) FROM `stations` WHERE `stations`.`id` IN (.+)").
+		WithArgs(1000, 2000).
+		WillReturnRows(sqlmock.NewRows([]string{"id", "name"}))
+
+	mock.ExpectQuery("SELECT (.+) FROM `stations_for_routes` WHERE `stations_for_routes`.`route_id` IN (.+)").
+		WithArgs(1000, 2000).
+		WillReturnRows(sqlmock.NewRows([]string{"station_id", "route_id", "ord"}))
 
 	err = typicalQuery.QueryResult(dbConnectMock, &ConnectionSettings{}, &EmptyWriter{})
 	if err != nil {
@@ -338,7 +342,7 @@ func TestMakeDDLFromTableDescription(t *testing.T) {
 		"    PRIMARY KEY (`id`),\n" +
 		"    INDEX `id2` (`id2`),\n" +
 		"    UNIQUE INDEX `id3` (`id3`),\n" +
-		"    CONSTRAINT `id2` FOREIGN KEY (`id`) REFERENCES `other_table` (`id`) ON DELETE CASCADE\n" +
+		"    CONSTRAINT `fk_id2` FOREIGN KEY (`id2`) REFERENCES `other_table` (`id`) ON DELETE CASCADE\n" +
 		");"
 	if ddl != expectedDDL {
 		t.Errorf("Expected DDL\n%s\nGOT:\n%s\n", expectedDDL, ddl)

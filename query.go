@@ -46,6 +46,11 @@ type TableColumnDDL struct {
 	Extra   string         `db:"Extra"`
 }
 
+type Result struct {
+	DDL  *map[string]string
+	Rows *map[string]([]*map[string]interface{})
+}
+
 type dbConnector func(conset *ConnectionSettings) (db *sqlx.DB, err error)
 
 // QueryResult returns rows of data from DB
@@ -57,6 +62,14 @@ func (q *Query) QueryResult(dbConnect dbConnector, conset *ConnectionSettings, w
 	db, err := dbConnect(conset)
 	if err != nil {
 		return err
+	}
+
+	ddls, err := q.toDDL(db)
+	if err != nil {
+		return
+	}
+	for tableName, tableDDL := range ddls {
+		writer.WriteDDL(tableName, tableDDL)
 	}
 
 	var query string
@@ -74,12 +87,7 @@ func (q *Query) QueryResult(dbConnect dbConnector, conset *ConnectionSettings, w
 		if err != nil {
 			return err
 		}
-		writer.Write(resultsMaps)
-	}
-
-	_, err = q.toDDL(db)
-	if err != nil {
-		return
+		writer.WriteRows(qt.name, qt.columns, resultsMaps)
 	}
 
 	return
@@ -119,20 +127,21 @@ func (q *Query) toSqlForRelation(qt *QueryTable) (str string, err error) {
 	return
 }
 
-func (q *Query) toDDL(db *sqlx.DB) (ddl string, err error) {
+func (q *Query) toDDL(db *sqlx.DB) (ddls map[string]string, err error) {
+	ddls = make(map[string]string, 0)
 	for _, qt := range q.tables {
 		tableDescribtion, err := getTableDescription(db, qt.name)
 		if err != nil {
-			return "", err
+			return ddls, err
 		}
 		tableDDL, err := makeDDLFromTableDescription(qt.name, tableDescribtion, qt.columns, q.relations)
 		if err != nil {
-			return "", err
+			return ddls, err
 		}
 		//fmt.Printf("%s\n", tableDDL)
-		ddl += tableDDL
+		ddls[qt.name] = tableDDL
 	}
-	return ddl, nil
+	return ddls, nil
 }
 
 func getTableDescription(db *sqlx.DB, tableName string) (tableDescribtion []TableColumnDDL, err error) {
@@ -173,7 +182,7 @@ func makeDDLFromTableDescription(tableName string, tableDescribtion []TableColum
 		}
 		rTable, rColumn, _ := findRelation(relations, tableName, columnDescr.Field)
 		if rColumn != "" {
-			possibleFKDefs[sqlColumn(columnDescr.Field)] = "CONSTRAINT " + sqlColumn(columnDescr.Field) + " FOREIGN KEY (" + sqlColumn(rColumn) + ") REFERENCES " + sqlTable(rTable) + " (`id`) ON DELETE CASCADE"
+			possibleFKDefs[sqlColumn(columnDescr.Field)] = "CONSTRAINT " + sqlColumn("fk_"+columnDescr.Field) + " FOREIGN KEY (" + sqlColumn(columnDescr.Field) + ") REFERENCES " + sqlTable(rTable) + " (" + sqlColumn(rColumn) + ") ON DELETE CASCADE"
 		}
 	}
 

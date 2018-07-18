@@ -58,7 +58,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	writer := &SimpleWriter{}
+	writer := &SqlWriter{}
 
 	err = query.QueryResult(dbConnect, conset, writer)
 	if err != nil {

@@ -5,14 +5,16 @@ import (
 )
 
 type DataWriter interface {
-	Write(results []*map[string]interface{}) (err error)
+	WriteRows(tableName string, columns []string, results []*map[string]interface{}) (err error)
+	WriteDDL(tableName string, ddl string) (err error)
 }
 
 type SimpleWriter struct {
 }
 
-func (w *SimpleWriter) Write(results []*map[string]interface{}) (err error) {
-	for _, row := range results {
+func (w *SimpleWriter) WriteRows(tableName string, _ []string, rows []*map[string]interface{}) (err error) {
+	fmt.Println(tableName)
+	for _, row := range rows {
 		for field, v := range *row {
 			value := ""
 			switch typedValue := v.(type) {
@@ -39,5 +41,10 @@ func (w *SimpleWriter) Write(results []*map[string]interface{}) (err error) {
 		}
 		fmt.Println("")
 	}
+	return nil
+}
+
+func (w *SimpleWriter) WriteDDL(tableName string, ddl string) (err error) {
+	fmt.Println(ddl)
 	return nil
 }
