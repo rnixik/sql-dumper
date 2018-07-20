@@ -110,7 +110,7 @@ func TestQueryResultConnectionError(t *testing.T) {
 	}
 }
 
-func TestQueryResultQueryError(t *testing.T) {
+func TestQueryResultSingleQueryError(t *testing.T) {
 	mockDB, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("An error '%s' was not expected when opening a stub database connection", err)
@@ -121,6 +121,21 @@ func TestQueryResultQueryError(t *testing.T) {
 	dbConnectMock := func(conset *ConnectionSettings) (db *sqlx.DB, err error) {
 		return sqlxDB, nil
 	}
+
+	mock.ExpectQuery("DESCRIBE `routes`").
+		WillReturnRows(
+			sqlmock.NewRows([]string{"Field", "Type", "Null", "Key", "Default", "Extra"}).AddRow("id", "bigint(20)", "NO", "PRI", nil, ""),
+		)
+
+	mock.ExpectQuery("DESCRIBE `stations`").
+		WillReturnRows(
+			sqlmock.NewRows([]string{"Field", "Type", "Null", "Key", "Default", "Extra"}).AddRow("id", "bigint(20)", "NO", "PRI", nil, ""),
+		)
+
+	mock.ExpectQuery("DESCRIBE `stations_for_routes`").
+		WillReturnRows(
+			sqlmock.NewRows([]string{"Field", "Type", "Null", "Key", "Default", "Extra"}).AddRow("station_id", "bigint(20)", "NO", "PRI", nil, ""),
+		)
 
 	mock.ExpectQuery("SELECT (.+) FROM `routes` WHERE `routes`.`id` BETWEEN \\? AND \\?").
 		WithArgs(1000, 2000).
@@ -155,6 +170,16 @@ func TestQueryResultRelationError(t *testing.T) {
 		},
 		primaryInterval: []int64{1000, 2000},
 	}
+
+	mock.ExpectQuery("DESCRIBE `routes`").
+		WillReturnRows(
+			sqlmock.NewRows([]string{"Field", "Type", "Null", "Key", "Default", "Extra"}).AddRow("id", "bigint(20)", "NO", "PRI", nil, ""),
+		)
+
+	mock.ExpectQuery("DESCRIBE `stations`").
+		WillReturnRows(
+			sqlmock.NewRows([]string{"Field", "Type", "Null", "Key", "Default", "Extra"}).AddRow("id", "bigint(20)", "NO", "PRI", nil, ""),
+		)
 
 	mock.ExpectQuery("SELECT (.+) FROM `routes` WHERE `routes`.`id` BETWEEN \\? AND \\?").
 		WithArgs(1000, 2000).
