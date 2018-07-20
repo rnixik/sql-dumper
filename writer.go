@@ -37,7 +37,7 @@ func (w *SimpleWriter) WriteRows(tableName string, _ []string, rows []*map[strin
 			default:
 				value = "UNDEFINED"
 			}
-			fmt.Printf("%s = %s; ", field, value)
+			fmt.Printf("%s = %s;||", field, value)
 		}
 		fmt.Println("")
 	}
