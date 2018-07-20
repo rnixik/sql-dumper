@@ -54,7 +54,7 @@ type Result struct {
 type dbConnector func(conset *ConnectionSettings) (db *sqlx.DB, err error)
 
 // QueryResult returns rows of data from DB
-func (q *Query) QueryResult(dbConnect dbConnector, conset *ConnectionSettings, writer DataWriter) (err error) {
+func (q *Query) QueryResult(dbConnect dbConnector, conset *ConnectionSettings, writer DataWriter, combined bool) (err error) {
 	if len(q.primaryInterval) != 2 {
 		return fmt.Errorf("primaryInterval should contain two values")
 	}
@@ -72,25 +72,39 @@ func (q *Query) QueryResult(dbConnect dbConnector, conset *ConnectionSettings, w
 		writer.WriteDDL(tableName, tableDDL)
 	}
 
-	var query string
-	for i, qt := range q.tables {
-		if i == 0 {
-			query = q.toSqlForSingleTable(qt)
-		} else {
-			query, err = q.toSqlForRelation(qt)
-		}
-		if err != nil {
-			return
-		}
-		//fmt.Println(query)
+	err = q.selectAndWrite(db, writer, combined)
+
+	return
+}
+
+func (q *Query) selectAndWrite(db *sqlx.DB, writer DataWriter, combined bool) (err error) {
+	if combined {
+		query := q.toSqlForCombinedRows()
 		resultsMaps, err := dbSelect(db, query, q.primaryInterval[0], q.primaryInterval[1])
 		if err != nil {
 			return err
 		}
-		writer.WriteRows(qt.name, qt.columns, resultsMaps)
+		writer.WriteRows("combined", q.getAllColumns(), resultsMaps)
+	} else {
+		var query string
+		for i, qt := range q.tables {
+			if i == 0 {
+				query = q.toSqlForSingleTable(qt)
+			} else {
+				query, err = q.toSqlForRelation(qt)
+			}
+			if err != nil {
+				return
+			}
+			//fmt.Println(query)
+			resultsMaps, err := dbSelect(db, query, q.primaryInterval[0], q.primaryInterval[1])
+			if err != nil {
+				return err
+			}
+			writer.WriteRows(qt.name, qt.columns, resultsMaps)
+		}
 	}
-
-	return
+	return nil
 }
 
 func dbSelect(db *sqlx.DB, query string, args ...interface{}) (resultsMaps []*map[string]interface{}, err error) {
@@ -124,6 +138,26 @@ func (q *Query) toSqlForRelation(qt *QueryTable) (str string, err error) {
 	str += "FROM " + sqlTable(qt.name) + "\n"
 	str += "WHERE " + leftTableColumn + " IN\n"
 	str += "(\n" + subquery + "\n)"
+	return
+}
+
+func (q *Query) toSqlForCombinedRows() (str string) {
+	selectTables := make([]string, 0)
+	selectColumns := make([]string, 0)
+	conditions := make([]string, 0)
+	for _, qt := range q.tables {
+		selectTables = append(selectTables, sqlTable(qt.name))
+		for _, col := range qt.columns {
+			selectColumns = append(selectColumns, sqlTableAndColumn(qt.name, col)+" AS "+sqlColumn(qt.name+"."+col))
+		}
+	}
+	for _, r := range q.relations {
+		conditions = append(conditions, sqlTableAndColumn(r.table1, r.column1)+" = "+sqlTableAndColumn(r.table2, r.column2))
+	}
+	conditions = append(conditions, sqlTableAndColumn(q.tables[0].name, q.tables[0].columns[0])+" BETWEEN ? AND ?")
+	str = "SELECT " + strings.Join(selectColumns, ", ") + "\n"
+	str += "FROM " + strings.Join(selectTables, ", ") + "\n"
+	str += "WHERE (" + strings.Join(conditions, ") AND (") + ")"
 	return
 }
 
@@ -283,6 +317,16 @@ func (q *Query) toSqlSubQueryForRelation(mainTable *QueryTable) (subquery string
 		whereConditions = append(whereConditions, condition)
 	}
 	subquery += "(" + strings.Join(whereConditions, ") AND (") + ")"
+	return
+}
+
+func (q *Query) getAllColumns() (columns []string) {
+	columns = make([]string, 0)
+	for _, qt := range q.tables {
+		for _, col := range qt.columns {
+			columns = append(columns, qt.name+"."+col)
+		}
+	}
 	return
 }
 
