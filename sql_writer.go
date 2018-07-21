@@ -27,6 +27,8 @@ func (w *SqlWriter) WriteRows(tableName string, columns []string, rows []*map[st
 			value := ""
 			switch typedValue := v.(type) {
 			case int:
+				value = fmt.Sprintf("%d", typedValue)
+				break
 			case int64:
 				value = fmt.Sprintf("%d", typedValue)
 				break
