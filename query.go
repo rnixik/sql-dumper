@@ -69,7 +69,10 @@ func (q *Query) QueryResult(dbConnect dbConnector, conset *ConnectionSettings, w
 		return
 	}
 	for tableName, tableDDL := range ddls {
-		writer.WriteDDL(tableName, tableDDL)
+		err = writer.WriteDDL(tableName, tableDDL)
+		if err != nil {
+			return
+		}
 	}
 
 	err = q.selectAndWrite(db, writer, combined)
@@ -84,7 +87,7 @@ func (q *Query) selectAndWrite(db *sqlx.DB, writer DataWriter, combined bool) (e
 		if err != nil {
 			return err
 		}
-		writer.WriteRows("combined", q.getAllColumns(), resultsMaps)
+		err = writer.WriteRows("combined", q.getAllColumns(), resultsMaps)
 	} else {
 		var query string
 		for i, qt := range q.tables {
@@ -101,7 +104,10 @@ func (q *Query) selectAndWrite(db *sqlx.DB, writer DataWriter, combined bool) (e
 			if err != nil {
 				return err
 			}
-			writer.WriteRows(qt.name, qt.columns, resultsMaps)
+			err = writer.WriteRows(qt.name, qt.columns, resultsMaps)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil

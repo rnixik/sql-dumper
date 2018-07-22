@@ -3,7 +3,7 @@ package main
 func Example_WriteRows() {
 	writer := &SimpleWriter{}
 	rows := make([]*map[string]interface{}, 0)
-	rows = append(rows, &map[string]interface{}{"name": "one", "title": "two"})
+	rows = append(rows, &map[string]interface{}{"name": "one"})
 	rows = append(rows, &map[string]interface{}{"id": int(123)})
 	rows = append(rows, &map[string]interface{}{"value": int64(456)})
 	rows = append(rows, &map[string]interface{}{"amount": 1.23})
@@ -15,7 +15,7 @@ func Example_WriteRows() {
 
 	// Output:
 	// some_table
-	// name = one;||title = two;||
+	// name = one;||
 	// id = 123;||
 	// value = 456;||
 	// amount = 1.230000;||

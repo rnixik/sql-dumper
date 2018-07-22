@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-func Run(dbConnect dbConnector, argsTail []string, configFile, format, dstFile, dstDir string) (err error) {
+func Run(dbConnect dbConnector, argsTail []string, configFile string, format string, fw FileWriter, dstFile string, dstDir string) (err error) {
 	if len(argsTail) != 2 && len(argsTail) != 3 {
 		showHelp()
 		return
@@ -49,7 +49,7 @@ func Run(dbConnect dbConnector, argsTail []string, configFile, format, dstFile, 
 	writer = &SimpleWriter{}
 	if format == "sql" {
 		combined = false
-		writer = &SqlWriter{dstFile, dstDir}
+		writer = NewSqlWriter(fw, dstFile, dstDir)
 	}
 
 	err = query.QueryResult(dbConnect, conset, writer, combined)

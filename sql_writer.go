@@ -6,18 +6,44 @@ import (
 )
 
 type SqlWriter struct {
+	fw      FileWriter
 	dstFile string
 	dstDir  string
 }
 
+func NewSqlWriter(fw FileWriter, dstFile, dstDir string) *SqlWriter {
+	return &SqlWriter{
+		fw,
+		dstFile,
+		dstDir,
+	}
+}
+
 func (w *SqlWriter) WriteDDL(tableName string, ddl string) (err error) {
-	fmt.Println("SET FOREIGN_KEY_CHECKS=0;")
-	fmt.Println(ddl)
-	fmt.Println("SET FOREIGN_KEY_CHECKS=1;")
-	return nil
+	contents := "SET FOREIGN_KEY_CHECKS=0;\n"
+	contents += ddl + "\n"
+	contents += "SET FOREIGN_KEY_CHECKS=1;\n"
+	f, err := w.fw.getFileHandler(w.getFilename(tableName))
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	_, err = f.WriteString(contents)
+	if err != nil {
+		return fmt.Errorf("Error at writing DDL to file: %s", err)
+	}
+	return
 }
 
 func (w *SqlWriter) WriteRows(tableName string, columns []string, rows []*map[string]interface{}) (err error) {
+	f, err := w.fw.getFileHandler(w.getFilename(tableName))
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	if err != nil {
+		return err
+	}
 	columnsNames := make([]string, 0)
 	for _, column := range columns {
 		columnsNames = append(columnsNames, "`"+column+"`")
@@ -50,10 +76,20 @@ func (w *SqlWriter) WriteRows(tableName string, columns []string, rows []*map[st
 			values = append(values, value)
 		}
 		insert := "INSERT INTO `" + tableName + "` (" + strings.Join(columnsNames, ", ") + ") " +
-			"VALUES (" + strings.Join(values, ", ") + ");"
-		fmt.Println(insert)
+			"VALUES (" + strings.Join(values, ", ") + ");\n"
+		_, err = f.WriteString(insert)
+		if err != nil {
+			return fmt.Errorf("Error at writing rows to file: %s", err)
+		}
 	}
-	return nil
+	return
+}
+
+func (w *SqlWriter) getFilename(tableName string) (filename string) {
+	if w.dstDir != "" {
+		return w.dstDir + "/" + tableName + ".sql"
+	}
+	return w.dstFile
 }
 
 func escapeString(str string) string {
