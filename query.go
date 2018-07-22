@@ -348,3 +348,7 @@ func findRelation(relations []*QueryRelation, tableName string, tableColumn stri
 	}
 	return
 }
+
+func (conset *ConnectionSettings) dsn() (dsn string) {
+	return conset.user + ":" + conset.password + "@tcp(" + conset.dbhost + ")/" + conset.dbname
+}

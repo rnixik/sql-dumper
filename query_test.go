@@ -564,14 +564,6 @@ func TestToSqlSubQueryForRelation(t *testing.T) {
 	}
 }
 
-func convertQueryToString(q *Query) string {
-	return fmt.Sprintf("%s\n%v\n%s\n",
-		convertQtsToString(q.tables),
-		q.primaryInterval,
-		convertQrsToString(q.relations),
-	)
-}
-
 func TestFindRelationError(t *testing.T) {
 	relations := []*QueryRelation{
 		&QueryRelation{"some_table", "id2", "other_table", "id"},
@@ -581,4 +573,27 @@ func TestFindRelationError(t *testing.T) {
 		t.Errorf("Expected error, but got nil")
 		return
 	}
+}
+
+func TestConSetDns(t *testing.T) {
+	conset := &ConnectionSettings{
+		driver:   "mysql",
+		user:     "user",
+		password: "pass",
+		dbname:   "dbname",
+		dbhost:   "host",
+	}
+	dsn := conset.dsn()
+	expected := "user:pass@tcp(host)/dbname"
+	if dsn != expected {
+		t.Errorf("EXPECTED '%s' GOT '%s'", expected, dsn)
+	}
+}
+
+func convertQueryToString(q *Query) string {
+	return fmt.Sprintf("%s\n%v\n%s\n",
+		convertQtsToString(q.tables),
+		q.primaryInterval,
+		convertQrsToString(q.relations),
+	)
 }

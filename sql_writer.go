@@ -6,6 +6,8 @@ import (
 )
 
 type SqlWriter struct {
+	dstFile string
+	dstDir  string
 }
 
 func (w *SqlWriter) WriteDDL(tableName string, ddl string) (err error) {
