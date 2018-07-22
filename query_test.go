@@ -264,6 +264,73 @@ func TestQueryResultCombined(t *testing.T) {
 	}
 }
 
+func TestQueryResultFileError(t *testing.T) {
+	mockDB, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer mockDB.Close()
+	sqlxDB := sqlx.NewDb(mockDB, "sqlmock")
+
+	dbConnectMock := func(conset *ConnectionSettings) (db *sqlx.DB, err error) {
+		return sqlxDB, nil
+	}
+
+	var simpleQuery = &Query{
+		tables: []*QueryTable{
+			&QueryTable{"some_table", []string{"id"}},
+		},
+		relations:       []*QueryRelation{},
+		primaryInterval: []int64{1, 2},
+	}
+
+	mock.ExpectQuery("DESCRIBE `some_table`").
+		WillReturnRows(
+			sqlmock.NewRows([]string{"Field", "Type", "Null", "Key", "Default", "Extra"}).AddRow("id", "bigint(20)", "NO", "PRI", nil, ""),
+		)
+
+	fw := &TestFileErrorWriter{}
+	writer := NewSqlWriter(fw, "result.sql", "")
+
+	err = simpleQuery.QueryResult(dbConnectMock, &ConnectionSettings{}, writer, true)
+	if err == nil {
+		t.Errorf("Expected error by file writer, but got nil")
+		return
+	}
+}
+
+func TestSelectAndWriteFileError(t *testing.T) {
+	mockDB, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer mockDB.Close()
+	sqlxDB := sqlx.NewDb(mockDB, "sqlmock")
+
+	var simpleQuery = &Query{
+		tables: []*QueryTable{
+			&QueryTable{"some_table", []string{"id"}},
+		},
+		relations:       []*QueryRelation{},
+		primaryInterval: []int64{1, 2},
+	}
+
+	mock.ExpectQuery("SELECT (.+)").
+		WithArgs(1, 2).
+		WillReturnRows(
+			sqlmock.NewRows([]string{"id", "name"}).AddRow(1, "some"),
+		)
+
+	fw := &TestFileErrorWriter{}
+	writer := NewSqlWriter(fw, "result.sql", "")
+
+	err = simpleQuery.selectAndWrite(sqlxDB, writer, false)
+	if err == nil {
+		t.Errorf("Expected error by file writer, but got nil")
+		return
+	}
+}
+
 func TestQueryResultCombinedError(t *testing.T) {
 	mockDB, mock, err := sqlmock.New()
 	if err != nil {

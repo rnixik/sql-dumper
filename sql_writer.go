@@ -41,9 +41,6 @@ func (w *SqlWriter) WriteRows(tableName string, columns []string, rows []*map[st
 		return err
 	}
 	defer f.Close()
-	if err != nil {
-		return err
-	}
 	columnsNames := make([]string, 0)
 	for _, column := range columns {
 		columnsNames = append(columnsNames, "`"+column+"`")
