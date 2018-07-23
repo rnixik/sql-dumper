@@ -71,6 +71,32 @@ func TestRunDbError(t *testing.T) {
 	}
 }
 
+func TestRunConfigReadError(t *testing.T) {
+	dbConnect := func(conset *ConnectionSettings) (db *sqlx.DB, err error) {
+		return nil, nil
+	}
+	os.Setenv("DB_NAME", "")
+	err := Run(dbConnect, []string{"some_table:id", "1-2"}, "not_existing_file", "", NewTestFileWriter(), "", "")
+	os.Setenv("DB_NAME", "")
+	if err == nil {
+		t.Errorf("Expected error, but got nil")
+		return
+	}
+}
+
+func TestRunParseError(t *testing.T) {
+	dbConnect := func(conset *ConnectionSettings) (db *sqlx.DB, err error) {
+		return nil, nil
+	}
+	os.Setenv("DB_NAME", "")
+	err := Run(dbConnect, []string{"", "", ""}, ".env.example", "", NewTestFileWriter(), "", "")
+	os.Setenv("DB_NAME", "")
+	if err == nil {
+		t.Errorf("Expected error, but got nil")
+		return
+	}
+}
+
 func TestGetConnectionSettingsFileError(t *testing.T) {
 	os.Setenv("DB_NAME", "")
 	_, err := getConnectionSettings("not_existing_file")
