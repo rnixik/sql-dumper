@@ -2,7 +2,8 @@ package main
 
 import (
 	"fmt"
-	//"testing"
+	"os"
+	"testing"
 )
 
 type TestFile struct {
@@ -63,4 +64,40 @@ type TestFileHandlerErrorWriter struct {
 
 func (fw *TestFileHandlerErrorWriter) getFileHandler(filename string) (f File, err error) {
 	return nil, fmt.Errorf("Some testing error at getFileHandler")
+}
+
+// Tests on NewOsFileWriter
+
+func TestGetFileHandlerFileExists(t *testing.T) {
+	fw := NewOsFileWriter()
+	_, err := fw.getFileHandler(".env.example")
+	if err == nil {
+		t.Errorf("Expected error, but got nil")
+		return
+	}
+}
+
+func TestGetFileHandlerDoubleAccess(t *testing.T) {
+	os.Remove("test_file_handler")
+	fw := NewOsFileWriter()
+	_, err := fw.getFileHandler("test_file_handler")
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+		return
+	}
+	_, err = fw.getFileHandler("test_file_handler")
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+		return
+	}
+	os.Remove("test_file_handler")
+}
+
+func TestGetFileHandlerCreatingError(t *testing.T) {
+	fw := NewOsFileWriter()
+	_, err := fw.getFileHandler("/not_writtable/file")
+	if err == nil {
+		t.Errorf("Expected error, but got nil")
+		return
+	}
 }
