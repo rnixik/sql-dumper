@@ -12,16 +12,9 @@ func Run(dbConnect dbConnector, argsTail []string, configFile string, format str
 		return
 	}
 
-	if os.Getenv("DB_NAME") == "" {
-		cfg, err := ini.Load(configFile)
-		if err != nil {
-			return fmt.Errorf("Empty DB_NAME in environment and fail to read config file: %v", err)
-		}
-		cfgSection := cfg.Section("")
-		os.Setenv("DB_USER", cfgSection.Key("DB_USER").String())
-		os.Setenv("DB_PASSWORD", cfgSection.Key("DB_PASSWORD").String())
-		os.Setenv("DB_NAME", cfgSection.Key("DB_NAME").String())
-		os.Setenv("DB_HOST", cfgSection.Key("DB_HOST").String())
+	conset, err := getConnectionSettings(configFile)
+	if err != nil {
+		return err
 	}
 
 	tablesPart := argsTail[0]
@@ -29,14 +22,6 @@ func Run(dbConnect dbConnector, argsTail []string, configFile string, format str
 	relationsPart := ""
 	if len(argsTail) == 3 {
 		relationsPart = argsTail[2]
-	}
-
-	conset := &ConnectionSettings{
-		driver:   "mysql",
-		user:     os.Getenv("DB_USER"),
-		password: os.Getenv("DB_PASSWORD"),
-		dbname:   os.Getenv("DB_NAME"),
-		dbhost:   os.Getenv("DB_HOST"),
 	}
 
 	query, err := ParseRequest(tablesPart, intervalPart, relationsPart)
@@ -57,6 +42,28 @@ func Run(dbConnect dbConnector, argsTail []string, configFile string, format str
 		return err
 	}
 	return nil
+}
+
+func getConnectionSettings(configFile string) (*ConnectionSettings, error) {
+	if os.Getenv("DB_NAME") == "" {
+		cfg, err := ini.Load(configFile)
+		if err != nil {
+			return nil, fmt.Errorf("Empty DB_NAME in environment and fail to read config file: %v", err)
+		}
+		cfgSection := cfg.Section("")
+		os.Setenv("DB_USER", cfgSection.Key("DB_USER").String())
+		os.Setenv("DB_PASSWORD", cfgSection.Key("DB_PASSWORD").String())
+		os.Setenv("DB_NAME", cfgSection.Key("DB_NAME").String())
+		os.Setenv("DB_HOST", cfgSection.Key("DB_HOST").String())
+	}
+
+	return &ConnectionSettings{
+		driver:   "mysql",
+		user:     os.Getenv("DB_USER"),
+		password: os.Getenv("DB_PASSWORD"),
+		dbname:   os.Getenv("DB_NAME"),
+		dbhost:   os.Getenv("DB_HOST"),
+	}, nil
 }
 
 func showHelp() {
