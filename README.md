@@ -7,7 +7,7 @@
 ## Usage
 
 ```
-sql-dumper [--config .env] "tables definition" "interval definition" ["relations definition"]
+sql-dumper [--config .env] [--format sql] [--file result.sql] [--dir ./] "tables definition" "interval definition" ["relations definition"]
 ```
 
 For example, you have tables with DDL:
