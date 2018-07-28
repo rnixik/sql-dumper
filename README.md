@@ -241,8 +241,8 @@ Output in stations_for_routes.csv:
 ```
 "station_id","route_id","ord"
 1,100,0
-101,0
-102,1
+2,101,0
+2,102,1
 ```
 
 ## License
