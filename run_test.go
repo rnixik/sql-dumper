@@ -13,7 +13,7 @@ func TestRunErrorArguments(t *testing.T) {
 	dbConnect := func(conset *ConnectionSettings) (db *sqlx.DB, err error) {
 		return nil, nil
 	}
-	err := Run(dbConnect, []string{}, "", "", NewTestFileWriter(), "", "")
+	err := Run(dbConnect, []string{}, "", "", NewTestFileWriter(), "", "", ",")
 	if err != nil {
 		t.Errorf("Expected help, but got error: %s", err)
 		return
@@ -41,7 +41,7 @@ func TestRun(t *testing.T) {
 		WithArgs(1, 2).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}))
 
-	err = Run(dbConnectMock, []string{"some_table:id", "1-2"}, ".env.example", "sql", NewTestFileWriter(), "test_example.sql", "")
+	err = Run(dbConnectMock, []string{"some_table:id", "1-2"}, ".env.example", "sql", NewTestFileWriter(), "test_example.sql", "", ",")
 	os.Setenv("DB_NAME", "")
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
@@ -63,7 +63,7 @@ func TestRunDbError(t *testing.T) {
 
 	mock.ExpectQuery("DESCRIBE `some_table`").WillReturnError(fmt.Errorf("Some DB error"))
 
-	err = Run(dbConnectMock, []string{"some_table:id", "1-2"}, ".env.example", "sql", NewTestFileWriter(), "test_example.sql", "")
+	err = Run(dbConnectMock, []string{"some_table:id", "1-2"}, ".env.example", "sql", NewTestFileWriter(), "test_example.sql", "", ",")
 	os.Setenv("DB_NAME", "")
 	if err == nil {
 		t.Errorf("Expected error, but got nil")
@@ -76,7 +76,7 @@ func TestRunConfigReadError(t *testing.T) {
 		return nil, nil
 	}
 	os.Setenv("DB_NAME", "")
-	err := Run(dbConnect, []string{"some_table:id", "1-2"}, "not_existing_file", "", NewTestFileWriter(), "", "")
+	err := Run(dbConnect, []string{"some_table:id", "1-2"}, "not_existing_file", "", NewTestFileWriter(), "", "", ",")
 	os.Setenv("DB_NAME", "")
 	if err == nil {
 		t.Errorf("Expected error, but got nil")
@@ -89,7 +89,7 @@ func TestRunParseError(t *testing.T) {
 		return nil, nil
 	}
 	os.Setenv("DB_NAME", "")
-	err := Run(dbConnect, []string{"", "", ""}, ".env.example", "", NewTestFileWriter(), "", "")
+	err := Run(dbConnect, []string{"", "", ""}, ".env.example", "", NewTestFileWriter(), "", "", ",")
 	os.Setenv("DB_NAME", "")
 	if err == nil {
 		t.Errorf("Expected error, but got nil")

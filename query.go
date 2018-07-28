@@ -88,6 +88,9 @@ func (q *Query) selectAndWrite(db *sqlx.DB, writer DataWriter, combined bool) (e
 			return err
 		}
 		err = writer.WriteRows("combined", q.getAllColumns(), resultsMaps)
+		if err != nil {
+			return err
+		}
 	} else {
 		var query string
 		for i, qt := range q.tables {
