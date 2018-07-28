@@ -13,11 +13,12 @@ func dbConnect(conset *ConnectionSettings) (db *sqlx.DB, err error) {
 }
 
 func main() {
-	configFile := flag.String("config", ".env", "source label file")
+	configFile := flag.String("config", ".env", "File with settings of connection to DB")
 	format := flag.String("format", "sql", "Output format: sql, csv, simple")
 	csvDelimiter := flag.String("csv-delimiter", ",", "Delimiter for csv format")
 	dstFile := flag.String("file", "", "Filename for single output file")
 	dstDir := flag.String("dir", "", "Output directory for multiple output files")
+	flag.Usage = showHelp
 	flag.Parse()
 
 	fw := NewOsFileWriter()

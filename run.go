@@ -78,16 +78,29 @@ func getConnectionSettings(configFile string) (*ConnectionSettings, error) {
 }
 
 func showHelp() {
-	fmt.Println("Dumps data from DB.")
-	fmt.Println("Usage:")
-	fmt.Println("    sql-dumper \"tables definitions\" \"primary interval\" [\"relations definitions\"]")
-	fmt.Println("")
-	fmt.Println("Format of tables definitions: table1:column11,column12,...,column1N;table2:column21;...")
-	fmt.Println("Format of primary interval: int-int")
-	fmt.Println("Format of relations: table1.column11=table2.column21;table2.column22=table3.column31")
-	fmt.Println("")
-	fmt.Println("Example:")
-	fmt.Println("    sql-dumper \"routes:id,name;stations:id,name;stations_for_routes:station_id,route_id,ord\" \\")
-	fmt.Println("        2000-2200 \\")
-	fmt.Println("        \"routes.id=stations_for_routes.route_id;stations.id=stations_for_routes.station_id\"")
+	usage := "Dumps data from DB.\n"
+	usage += "\n"
+	usage += "Usage: sql-dumper [OPTIONS] <tables> <interval> [relations]\n"
+	usage += "\n"
+	usage += "Options:\n"
+	usage += "  --config <filename>        File with settings of connection to DB.\n"
+	usage += "                             It will be used if environment variable DB_NAME is not defined (default .env)\n"
+	usage += "  --format {sql|csv|simple}  Format of output format (default sql)\n"
+	usage += "  --csv-delimiter            Sets delimiter of values in CSV (default ,)\n"
+	usage += "  --file <filename>          Specify file to save combined result from all tables. Can't be used with --dir (default result.sql)\n"
+	usage += "  --dir <directory>          Specify directory to save the result in a separete file for every table\n"
+	usage += "\n"
+	usage += "Arguments:\n"
+	usage += "\n"
+	usage += "  tables     List of tables and columns to dump: table1:column11,column12,...,column1N;table2:column21;...\n"
+	usage += "  interval   Interval of values for the first column in the first table to select from DB: int-int\n"
+	usage += "  relations  List of relations between chosen tables and columns:\n"
+	usage += "             table1.column11=table2.column21;table2.column22=table3.column31\n"
+	usage += "\n"
+	usage += "Example:\n"
+	usage += "\n"
+	usage += "  sql-dumper \"routes:id,name;stations:id,name;stations_for_routes:station_id,route_id,ord\" \\\n"
+	usage += "     2000-2200 \\\n"
+	usage += "     \"routes.id=stations_for_routes.route_id;stations.id=stations_for_routes.station_id\"\n"
+	fmt.Fprintln(os.Stderr, usage)
 }
