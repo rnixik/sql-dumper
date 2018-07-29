@@ -42,13 +42,13 @@ func TestCsvWriterWriteRowsToDir(t *testing.T) {
 	writer := NewCsvWriter(fw, "", "/tmp/some_dir", ";")
 	rows1 := make([]*map[string]interface{}, 0)
 	rows1 = append(rows1, &map[string]interface{}{
-		"id":    1,
-		"name":  "Name 1",
+		"id":   1,
+		"name": "Name 1",
 	})
 	rows2 := make([]*map[string]interface{}, 0)
 	rows2 = append(rows2, &map[string]interface{}{
 		"id":    1,
-		"value":  5,
+		"value": 5,
 	})
 
 	writer.WriteRows("some_table1", []string{"id", "name"}, rows1)
