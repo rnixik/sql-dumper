@@ -30,8 +30,17 @@ func Run(dbConnect dbConnector, argsTail []string, configFile string, format str
 		return err
 	}
 
-	combined := true
-	var writer DataWriter
+	writer, combined := getWriterAndCombinedMode(format, fw, dstFile, dstDir, csvDelimiter)
+
+	err = query.QueryResult(dbConnect, conset, writer, combined)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func getWriterAndCombinedMode(format string, fw FileWriter, dstFile string, dstDir string, csvDelimiter string) (writer DataWriter, combined bool) {
+	combined = true
 	writer = &SimpleWriter{}
 	if format == "sql" {
 		combined = false
@@ -48,12 +57,7 @@ func Run(dbConnect dbConnector, argsTail []string, configFile string, format str
 		}
 		writer = NewCsvWriter(fw, dstFile, dstDir, csvDelimiter)
 	}
-
-	err = query.QueryResult(dbConnect, conset, writer, combined)
-	if err != nil {
-		return err
-	}
-	return nil
+	return
 }
 
 func getConnectionSettings(configFile string) (*ConnectionSettings, error) {

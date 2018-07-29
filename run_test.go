@@ -7,6 +7,7 @@ import (
 	"os"
 	"reflect"
 	"testing"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestRunErrorArguments(t *testing.T) {
@@ -104,6 +105,105 @@ func TestGetConnectionSettingsFileError(t *testing.T) {
 		t.Errorf("Expected error, but got nil")
 		return
 	}
+}
+
+func TestGetWriterAndCombinedMode_sqlDefault(t *testing.T) {
+	format := "sql"
+	fw := NewTestFileWriter()
+	dstFile := ""
+	dstDir := ""
+	csvDelimiter := ","
+	writer, combined := getWriterAndCombinedMode(format, fw, dstFile, dstDir, csvDelimiter)
+	assert.IsType(t, &SqlWriter{}, writer)
+	sqlWriter := writer.(*SqlWriter)
+	assert.Equal(t, fw, sqlWriter.fw)
+	assert.Equal(t, "result.sql", sqlWriter.dstFile)
+	assert.Equal(t, "", sqlWriter.dstDir)
+	assert.False(t, combined)
+}
+
+func TestGetWriterAndCombinedMode_sqlDstFile(t *testing.T) {
+	format := "sql"
+	fw := NewTestFileWriter()
+	dstFile := "custom.sql"
+	dstDir := ""
+	csvDelimiter := ","
+	writer, combined := getWriterAndCombinedMode(format, fw, dstFile, dstDir, csvDelimiter)
+	assert.IsType(t, &SqlWriter{}, writer)
+	sqlWriter := writer.(*SqlWriter)
+	assert.Equal(t, "custom.sql", sqlWriter.dstFile)
+	assert.Equal(t, "", sqlWriter.dstDir)
+	assert.False(t, combined)
+}
+
+func TestGetWriterAndCombinedMode_sqlDstDir(t *testing.T) {
+	format := "sql"
+	fw := NewTestFileWriter()
+	dstFile := ""
+	dstDir := "./"
+	csvDelimiter := ","
+	writer, combined := getWriterAndCombinedMode(format, fw, dstFile, dstDir, csvDelimiter)
+	assert.IsType(t, &SqlWriter{}, writer)
+	sqlWriter := writer.(*SqlWriter)
+	assert.Equal(t, "", sqlWriter.dstFile)
+	assert.Equal(t, "./", sqlWriter.dstDir)
+	assert.False(t, combined)
+}
+
+func TestGetWriterAndCombinedMode_csvDefault(t *testing.T) {
+	format := "csv"
+	fw := NewTestFileWriter()
+	dstFile := ""
+	dstDir := ""
+	csvDelimiter := ","
+	writer, combined := getWriterAndCombinedMode(format, fw, dstFile, dstDir, csvDelimiter)
+	assert.IsType(t, &CsvWriter{}, writer)
+	csvWriter := writer.(*CsvWriter)
+	assert.Equal(t, fw, csvWriter.fw)
+	assert.Equal(t, "result.csv", csvWriter.dstFile)
+	assert.Equal(t, "", csvWriter.dstDir)
+	assert.True(t, combined)
+}
+
+func TestGetWriterAndCombinedMode_csvDstFile(t *testing.T) {
+	format := "csv"
+	fw := NewTestFileWriter()
+	dstFile := "custom.csv"
+	dstDir := ""
+	csvDelimiter := ","
+	writer, combined := getWriterAndCombinedMode(format, fw, dstFile, dstDir, csvDelimiter)
+	assert.IsType(t, &CsvWriter{}, writer)
+	csvWriter := writer.(*CsvWriter)
+	assert.Equal(t, fw, csvWriter.fw)
+	assert.Equal(t, "custom.csv", csvWriter.dstFile)
+	assert.Equal(t, "", csvWriter.dstDir)
+	assert.True(t, combined)
+}
+
+func TestGetWriterAndCombinedMode_csvDstDir(t *testing.T) {
+	format := "csv"
+	fw := NewTestFileWriter()
+	dstFile := ""
+	dstDir := "./"
+	csvDelimiter := ","
+	writer, combined := getWriterAndCombinedMode(format, fw, dstFile, dstDir, csvDelimiter)
+	assert.IsType(t, &CsvWriter{}, writer)
+	csvWriter := writer.(*CsvWriter)
+	assert.Equal(t, fw, csvWriter.fw)
+	assert.Equal(t, "", csvWriter.dstFile)
+	assert.Equal(t, "./", csvWriter.dstDir)
+	assert.False(t, combined)
+}
+
+func TestGetWriterAndCombinedMode_simple(t *testing.T) {
+	format := "simple"
+	fw := NewTestFileWriter()
+	dstFile := ""
+	dstDir := ""
+	csvDelimiter := ","
+	writer, combined := getWriterAndCombinedMode(format, fw, dstFile, dstDir, csvDelimiter)
+	assert.IsType(t, &SimpleWriter{}, writer)
+	assert.True(t, combined)
 }
 
 func TestGetConnectionSettings(t *testing.T) {
