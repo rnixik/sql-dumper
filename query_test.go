@@ -533,10 +533,10 @@ func TestMakeDDLFromTableDescriptionError(t *testing.T) {
 
 func TestMakeDDLFromTableDescription(t *testing.T) {
 	tableDescribtion := []TableColumnDDL{
-		{"id", "bigint(20)", "NO", "PRI", sql.NullString{"", false}, ""},
-		{"id2", "bigint(20)", "YES", "MUL", sql.NullString{"", true}, ""},
-		{"id3", "bigint(20)", "YES", "UNI", sql.NullString{"0", true}, ""},
-		{"id4", "varchar(255)", "YES", "PRI", sql.NullString{"", false}, ""},
+		{"id", "bigint(20)", "NO", "PRI", sql.NullString{String: "", Valid: false}, ""},
+		{"id2", "bigint(20)", "YES", "MUL", sql.NullString{String: "", Valid: true}, ""},
+		{"id3", "bigint(20)", "YES", "UNI", sql.NullString{String: "0", Valid: true}, ""},
+		{"id4", "varchar(255)", "YES", "PRI", sql.NullString{String: "", Valid: false}, ""},
 	}
 
 	relations := []*QueryRelation{

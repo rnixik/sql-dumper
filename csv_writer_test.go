@@ -42,7 +42,7 @@ func TestCsvWriterWriteDDL(t *testing.T) {
 	writer := NewCsvWriter(fw, "result.csv", "", ",")
 	err := writer.WriteDDL("some_table", "")
 	if err != nil {
-		t.Errorf("Unexpected error: ", err)
+		t.Errorf("Unexpected error: %s", err)
 	}
 }
 
