@@ -13,7 +13,7 @@ Options:
   --format {sql|csv|simple}  Format of output format (default sql)
   --csv-delimiter            Sets delimiter of values in CSV (default ,)
   --file <filename>          Specify file to save combined result from all tables. Can't be used with --dir (default result.sql)
-  --dir <directory>          Specify directory to save the result in a separete file for every table
+  --dir <directory>          Specify directory to save the result in a separate file for every table
 
 Arguments:
 
