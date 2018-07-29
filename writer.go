@@ -10,11 +10,11 @@ type DataWriter interface {
 	WriteDDL(tableName string, ddl string) (err error)
 }
 
-// SimpleWriter writes result into stdout using simple format (concatinated values)
+// SimpleWriter writes result into stdout using simple format (concatenated values)
 type SimpleWriter struct {
 }
 
-// WriteRows prints result rows in simple format (concatinated values) into stdout
+// WriteRows prints result rows in simple format (concatenated values) into stdout
 func (w *SimpleWriter) WriteRows(tableName string, _ []string, rows []*map[string]interface{}) (err error) {
 	fmt.Println(tableName)
 	for _, row := range rows {

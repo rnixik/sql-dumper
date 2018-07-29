@@ -23,7 +23,7 @@ func NewCsvWriter(fw FileWriter, dstFile, dstDir, delimiter string) *CsvWriter {
 	}
 }
 
-// WriteDDL is part of interface. It is not usefull for csv. 
+// WriteDDL is part of interface. It is not useful for csv.
 func (w *CsvWriter) WriteDDL(tableName string, ddl string) (err error) {
 	return
 }
