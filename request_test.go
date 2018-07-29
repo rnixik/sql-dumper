@@ -18,15 +18,15 @@ var testsTable = []testTableTripl{
 	{
 		tablesPart: "routes:id,name;stations:id,sname;stations_for_routes:station_id,route_id,ord",
 		expected: []*QueryTable{
-			&QueryTable{"routes", []string{"id", "name"}},
-			&QueryTable{"stations", []string{"id", "sname"}},
-			&QueryTable{"stations_for_routes", []string{"station_id", "route_id", "ord"}},
+			{"routes", []string{"id", "name"}},
+			{"stations", []string{"id", "sname"}},
+			{"stations_for_routes", []string{"station_id", "route_id", "ord"}},
 		},
 	},
 	{
 		tablesPart: "routes:id,name",
 		expected: []*QueryTable{
-			&QueryTable{"routes", []string{"id", "name"}},
+			{"routes", []string{"id", "name"}},
 		},
 	},
 	{
@@ -198,9 +198,9 @@ var testsQuery = []testQueryInput{
 		relationsPart: "routes.id=stations_for_routes.route_id;stations.id=stations_for_routes.station_id",
 		expected: &Query{
 			tables: []*QueryTable{
-				&QueryTable{"routes", []string{"id", "name"}},
-				&QueryTable{"stations", []string{"id", "sname"}},
-				&QueryTable{"stations_for_routes", []string{"station_id", "route_id", "ord"}},
+				{"routes", []string{"id", "name"}},
+				{"stations", []string{"id", "sname"}},
+				{"stations_for_routes", []string{"station_id", "route_id", "ord"}},
 			},
 			relations: []*QueryRelation{
 				{"routes", "id", "stations_for_routes", "route_id"},

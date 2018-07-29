@@ -11,11 +11,11 @@ type TestContainsDef struct {
 }
 
 var testsContains = []TestContainsDef{
-	TestContainsDef{[]string{"abc", "def", "ghi"}, "def", true},
-	TestContainsDef{[]string{"abc", "def", "ghi"}, "jkl", false},
-	TestContainsDef{[]string{"abc", "def", "ghi"}, "", false},
-	TestContainsDef{[]string{}, "abc", false},
-	TestContainsDef{[]string{}, "", false},
+	{[]string{"abc", "def", "ghi"}, "def", true},
+	{[]string{"abc", "def", "ghi"}, "jkl", false},
+	{[]string{"abc", "def", "ghi"}, "", false},
+	{[]string{}, "abc", false},
+	{[]string{}, "", false},
 }
 
 func TestContains(t *testing.T) {

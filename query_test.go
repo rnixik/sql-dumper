@@ -11,9 +11,9 @@ import (
 
 var typicalQuery = &Query{
 	tables: []*QueryTable{
-		&QueryTable{"routes", []string{"id", "name"}},
-		&QueryTable{"stations", []string{"id", "sname"}},
-		&QueryTable{"stations_for_routes", []string{"station_id", "route_id", "ord"}},
+		{"routes", []string{"id", "name"}},
+		{"stations", []string{"id", "sname"}},
+		{"stations_for_routes", []string{"station_id", "route_id", "ord"}},
 	},
 	relations: []*QueryRelation{
 		{"routes", "id", "stations_for_routes", "route_id"},
@@ -86,7 +86,7 @@ func TestQueryResultIntervalError(t *testing.T) {
 
 	var simpleQuery = &Query{
 		tables: []*QueryTable{
-			&QueryTable{"some_table", []string{"id"}},
+			{"some_table", []string{"id"}},
 		},
 		relations:       []*QueryRelation{},
 		primaryInterval: []int64{},
@@ -162,8 +162,8 @@ func TestQueryResultRelationError(t *testing.T) {
 
 	queryWithBadRelations := &Query{
 		tables: []*QueryTable{
-			&QueryTable{"routes", []string{"id", "name"}},
-			&QueryTable{"stations", []string{"id", "sname"}},
+			{"routes", []string{"id", "name"}},
+			{"stations", []string{"id", "sname"}},
 		},
 		relations: []*QueryRelation{
 			{"routes", "id", "stations_for_routes", "route_id"},
@@ -206,7 +206,7 @@ func TestQueryResultDDLError(t *testing.T) {
 
 	var simpleQuery = &Query{
 		tables: []*QueryTable{
-			&QueryTable{"some_table", []string{"id"}},
+			{"some_table", []string{"id"}},
 		},
 		relations:       []*QueryRelation{},
 		primaryInterval: []int64{1, 2},
@@ -278,7 +278,7 @@ func TestQueryResultFileError(t *testing.T) {
 
 	var simpleQuery = &Query{
 		tables: []*QueryTable{
-			&QueryTable{"some_table", []string{"id"}},
+			{"some_table", []string{"id"}},
 		},
 		relations:       []*QueryRelation{},
 		primaryInterval: []int64{1, 2},
@@ -309,7 +309,7 @@ func TestSelectAndWriteCombinedFileError(t *testing.T) {
 
 	var simpleQuery = &Query{
 		tables: []*QueryTable{
-			&QueryTable{"some_table", []string{"id"}},
+			{"some_table", []string{"id"}},
 		},
 		relations:       []*QueryRelation{},
 		primaryInterval: []int64{1, 2},
@@ -341,7 +341,7 @@ func TestSelectAndWriteFileError(t *testing.T) {
 
 	var simpleQuery = &Query{
 		tables: []*QueryTable{
-			&QueryTable{"some_table", []string{"id"}},
+			{"some_table", []string{"id"}},
 		},
 		relations:       []*QueryRelation{},
 		primaryInterval: []int64{1, 2},
@@ -377,7 +377,7 @@ func TestQueryResultCombinedError(t *testing.T) {
 
 	var simpleQuery = &Query{
 		tables: []*QueryTable{
-			&QueryTable{"some_table", []string{"id"}},
+			{"some_table", []string{"id"}},
 		},
 		relations:       []*QueryRelation{},
 		primaryInterval: []int64{1, 2},
@@ -420,8 +420,8 @@ func TestDbSelect(t *testing.T) {
 	}
 
 	expectedResultsMaps := []*map[string]interface{}{
-		&map[string]interface{}{"id": 1, "name": "name1"},
-		&map[string]interface{}{"id": 2, "name": "name2"},
+		{"id": 1, "name": "name1"},
+		{"id": 2, "name": "name2"},
 	}
 
 	if !reflect.DeepEqual(expectedResultsMaps, resultsMaps) {
@@ -533,14 +533,14 @@ func TestMakeDDLFromTableDescriptionError(t *testing.T) {
 
 func TestMakeDDLFromTableDescription(t *testing.T) {
 	tableDescribtion := []TableColumnDDL{
-		TableColumnDDL{"id", "bigint(20)", "NO", "PRI", sql.NullString{"", false}, ""},
-		TableColumnDDL{"id2", "bigint(20)", "YES", "MUL", sql.NullString{"", true}, ""},
-		TableColumnDDL{"id3", "bigint(20)", "YES", "UNI", sql.NullString{"0", true}, ""},
-		TableColumnDDL{"id4", "varchar(255)", "YES", "PRI", sql.NullString{"", false}, ""},
+		{"id", "bigint(20)", "NO", "PRI", sql.NullString{"", false}, ""},
+		{"id2", "bigint(20)", "YES", "MUL", sql.NullString{"", true}, ""},
+		{"id3", "bigint(20)", "YES", "UNI", sql.NullString{"0", true}, ""},
+		{"id4", "varchar(255)", "YES", "PRI", sql.NullString{"", false}, ""},
 	}
 
 	relations := []*QueryRelation{
-		&QueryRelation{"some_table", "id2", "other_table", "id"},
+		{"some_table", "id2", "other_table", "id"},
 	}
 
 	ddl, err := makeDDLFromTableDescription("some_table", tableDescribtion, []string{"id", "id2", "id3", "no"}, relations)
@@ -615,9 +615,9 @@ var testsToSqlSubQueryForRelation = []testToSqlSubQueryForRelationInput{
 	{
 		query: &Query{
 			tables: []*QueryTable{
-				&QueryTable{"routes", []string{"id", "name"}},
-				&QueryTable{"stations", []string{"id", "sname"}},
-				&QueryTable{"stations_for_routes", []string{"station_id", "route_id", "ord"}},
+				{"routes", []string{"id", "name"}},
+				{"stations", []string{"id", "sname"}},
+				{"stations_for_routes", []string{"station_id", "route_id", "ord"}},
 			},
 			relations: []*QueryRelation{
 				{"routes", "id", "stations_for_routes", "route_id"},
@@ -665,7 +665,7 @@ func TestToSqlSubQueryForRelation(t *testing.T) {
 
 func TestFindRelationError(t *testing.T) {
 	relations := []*QueryRelation{
-		&QueryRelation{"some_table", "id2", "other_table", "id"},
+		{"some_table", "id2", "other_table", "id"},
 	}
 	_, _, err := findRelation(relations, "other_table", "other_column")
 	if err == nil {
