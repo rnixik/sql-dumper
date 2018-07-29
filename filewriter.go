@@ -16,7 +16,7 @@ type FileWriter interface {
 	getFileHandler(filename string) (File, error)
 }
 
-// FileWriter writes files using filesystem and methods from OS
+// OsFileWriter writes files using filesystem and methods from OS
 type OsFileWriter struct {
 	openFiles map[string]bool
 }
@@ -33,13 +33,12 @@ func (fw *OsFileWriter) getFileHandler(filename string) (f File, err error) {
 		if _, err = os.Stat(filename); !os.IsNotExist(err) {
 			// File exists
 			return nil, fmt.Errorf("File '%s' already exists", filename)
-		} else {
-			f, err = os.Create(filename)
-			if err != nil {
-				return nil, err
-			}
-			fw.openFiles[filename] = true
 		}
+		f, err = os.Create(filename)
+		if err != nil {
+			return nil, err
+		}
+		fw.openFiles[filename] = true
 	} else {
 		f, err = os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, 0600)
 	}
