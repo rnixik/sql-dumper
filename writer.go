@@ -4,14 +4,17 @@ import (
 	"fmt"
 )
 
+// DataWriter is interface which can write result somewhere
 type DataWriter interface {
 	WriteRows(tableName string, columns []string, results []*map[string]interface{}) (err error)
 	WriteDDL(tableName string, ddl string) (err error)
 }
 
+// SimpleWriter writes result into stdout using simple format (concatinated values)
 type SimpleWriter struct {
 }
 
+// WriteRows prints result rows in simple format (concatinated values) into stdout
 func (w *SimpleWriter) WriteRows(tableName string, _ []string, rows []*map[string]interface{}) (err error) {
 	fmt.Println(tableName)
 	for _, row := range rows {
@@ -44,6 +47,7 @@ func (w *SimpleWriter) WriteRows(tableName string, _ []string, rows []*map[strin
 	return nil
 }
 
+// WriteDDL prints DDL as is into stdout
 func (w *SimpleWriter) WriteDDL(tableName string, ddl string) (err error) {
 	fmt.Println(ddl)
 	return nil

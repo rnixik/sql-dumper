@@ -6,6 +6,7 @@ import (
 	"os"
 )
 
+// Run is entry point for application
 func Run(dbConnect dbConnector, argsTail []string, configFile string, format string, fw FileWriter, dstFile string, dstDir string, csvDelimiter string) (err error) {
 	if len(argsTail) != 2 && len(argsTail) != 3 {
 		showHelp()

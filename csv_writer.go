@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+// CsvWriter writes data in csv format using FileWriter
 type CsvWriter struct {
 	fw        FileWriter
 	dstFile   string
@@ -12,6 +13,7 @@ type CsvWriter struct {
 	delimiter string
 }
 
+// NewCsvWriter builds new CsvWriter
 func NewCsvWriter(fw FileWriter, dstFile, dstDir, delimiter string) *CsvWriter {
 	return &CsvWriter{
 		fw,
@@ -21,10 +23,12 @@ func NewCsvWriter(fw FileWriter, dstFile, dstDir, delimiter string) *CsvWriter {
 	}
 }
 
+// WriteDDL is part of interface. It is not usefull for csv. 
 func (w *CsvWriter) WriteDDL(tableName string, ddl string) (err error) {
 	return
 }
 
+// WriteRows writes result rows in csv format
 func (w *CsvWriter) WriteRows(tableName string, columns []string, rows []*map[string]interface{}) (err error) {
 	f, err := w.fw.getFileHandler(w.getFilename(tableName))
 	if err != nil {

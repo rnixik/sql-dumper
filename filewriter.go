@@ -5,19 +5,23 @@ import (
 	"os"
 )
 
+// File is interface which can writes strings to file
 type File interface {
 	WriteString(s string) (n int, err error)
 	Close() error
 }
 
+// FileWriter is interface which can instantiate File
 type FileWriter interface {
 	getFileHandler(filename string) (File, error)
 }
 
+// FileWriter writes files using filesystem and methods from OS
 type OsFileWriter struct {
 	openFiles map[string]bool
 }
 
+// NewOsFileWriter builds new OsFileWriter
 func NewOsFileWriter() *OsFileWriter {
 	return &OsFileWriter{
 		make(map[string]bool, 0),

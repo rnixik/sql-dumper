@@ -37,6 +37,7 @@ type ConnectionSettings struct {
 	dbhost   string
 }
 
+// TableColumnDDL represents result row from DESCRIBE command
 type TableColumnDDL struct {
 	Field   string         `db:"Field"`
 	Type    string         `db:"Type"`
@@ -46,6 +47,7 @@ type TableColumnDDL struct {
 	Extra   string         `db:"Extra"`
 }
 
+// Result contains DDL and rows which were got from DB
 type Result struct {
 	DDL  *map[string]string
 	Rows *map[string]([]*map[string]interface{})

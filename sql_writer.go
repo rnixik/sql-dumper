@@ -5,12 +5,14 @@ import (
 	"strings"
 )
 
+// SqlWriter writes data in sql format using FileWriter
 type SqlWriter struct {
 	fw      FileWriter
 	dstFile string
 	dstDir  string
 }
 
+// NewSqlWriter builds new SqlWriter
 func NewSqlWriter(fw FileWriter, dstFile, dstDir string) *SqlWriter {
 	return &SqlWriter{
 		fw,
@@ -19,6 +21,7 @@ func NewSqlWriter(fw FileWriter, dstFile, dstDir string) *SqlWriter {
 	}
 }
 
+// WriteDDL writes SQL-query which creates tables - DDL
 func (w *SqlWriter) WriteDDL(tableName string, ddl string) (err error) {
 	contents := "SET FOREIGN_KEY_CHECKS=0;\n"
 	contents += ddl + "\n"
@@ -35,6 +38,7 @@ func (w *SqlWriter) WriteDDL(tableName string, ddl string) (err error) {
 	return
 }
 
+// WriteRows writes result rows in sql-insert format
 func (w *SqlWriter) WriteRows(tableName string, columns []string, rows []*map[string]interface{}) (err error) {
 	f, err := w.fw.getFileHandler(w.getFilename(tableName))
 	if err != nil {
