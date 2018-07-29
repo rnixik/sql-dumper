@@ -3,11 +3,11 @@ package main
 import (
 	"fmt"
 	"github.com/jmoiron/sqlx"
+	"github.com/stretchr/testify/assert"
 	"gopkg.in/DATA-DOG/go-sqlmock.v1"
 	"os"
 	"reflect"
 	"testing"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestRunErrorArguments(t *testing.T) {
