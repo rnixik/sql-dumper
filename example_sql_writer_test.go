@@ -2,7 +2,7 @@ package main
 
 import "fmt"
 
-func Example_SqlWriterWriteRows() {
+func ExampleSqlWriter_WriteRows() {
 	fw := NewTestFileWriter()
 	writer := NewSqlWriter(fw, "result.sql", "")
 	rows := make([]*map[string]interface{}, 0)
@@ -35,7 +35,7 @@ func Example_SqlWriterWriteRows() {
 	// INSERT INTO `some_table` (`name`, `title`, `id`, `value`, `amount`, `chars`, `nulled`, `strange`) VALUES ('four', 'five', 789, 345, 2.230000, '##)', NULL, UNDEFINED);
 }
 
-func Example_SqlWriterWriteDDL() {
+func ExampleSqlWriter_WriteDDL() {
 	fw := NewTestFileWriter()
 	writer := NewSqlWriter(fw, "result.sql", "")
 	ddl := "CREATE TABLE `some_table` (\n"
@@ -58,7 +58,7 @@ func Example_SqlWriterWriteDDL() {
 	// SET FOREIGN_KEY_CHECKS=1;
 }
 
-func Example_SqlWriterWriteDDLToDir() {
+func ExampleSqlWriter_WriteDDL_toDir() {
 	fw := NewTestFileWriter()
 	writer := NewSqlWriter(fw, "", "/tmp/some_dir")
 	ddl1 := "CREATE TABLE `some_table1` (\n"
@@ -85,7 +85,7 @@ func Example_SqlWriterWriteDDLToDir() {
 	// SET FOREIGN_KEY_CHECKS=1;
 }
 
-func Example_SqlWriterWriteRowsFileWriteError() {
+func ExampleSqlWriter_WriteRows_fileWriteError() {
 	fw := &TestFileErrorWriter{}
 	writer := NewSqlWriter(fw, "result.sql", "")
 	rows := make([]*map[string]interface{}, 0)
@@ -97,7 +97,7 @@ func Example_SqlWriterWriteRowsFileWriteError() {
 	// Error at writing rows to file: Some testing error at WriteString
 }
 
-func Example_SqlWriterWriteRowsFileHandlerError() {
+func ExampleSqlWriter_WriteRows_fileHandlerError() {
 	fw := &TestFileHandlerErrorWriter{}
 	writer := NewSqlWriter(fw, "result.sql", "")
 	rows := make([]*map[string]interface{}, 0)
@@ -109,7 +109,7 @@ func Example_SqlWriterWriteRowsFileHandlerError() {
 	// Some testing error at getFileHandler
 }
 
-func Example_SqlWriterWriteDDLFileWriteError() {
+func ExampleSqlWriter_WriteDDL_fileWriteError() {
 	fw := &TestFileErrorWriter{}
 	writer := NewSqlWriter(fw, "result.sql", "")
 	ddl := "CREATE TABLE `some_table` (\n"
@@ -122,7 +122,7 @@ func Example_SqlWriterWriteDDLFileWriteError() {
 	// Error at writing DDL to file: Some testing error at WriteString
 }
 
-func Example_SqlWriterWriteDDLFileHandlerError() {
+func ExampleSqlWriter_WriteDDL_fileHandlerError() {
 	fw := &TestFileHandlerErrorWriter{}
 	writer := NewSqlWriter(fw, "result.sql", "")
 	ddl := "CREATE TABLE `some_table` (\n"

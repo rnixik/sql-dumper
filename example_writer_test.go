@@ -1,6 +1,6 @@
 package main
 
-func Example_WriteRows() {
+func ExampleSimpleWriter_WriteRows() {
 	writer := &SimpleWriter{}
 	rows := make([]*map[string]interface{}, 0)
 	rows = append(rows, &map[string]interface{}{"name": "one"})
@@ -24,7 +24,7 @@ func Example_WriteRows() {
 	// strange = UNDEFINED;||
 }
 
-func Example_WriteDDL() {
+func ExampleSimpleWriter_WriteDDL() {
 	writer := &SimpleWriter{}
 	ddl := "CREATE TABLE `some_table` (\n"
 	ddl += "    `id` bigint(20) NOT NULL,\n"
