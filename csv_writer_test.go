@@ -83,7 +83,18 @@ func TestCsvWriterWriteRowsFileWriteError(t *testing.T) {
 	rows = append(rows, &map[string]interface{}{"name": "one"})
 	err := writer.WriteRows("some_table", []string{"name"}, rows)
 	if err == nil {
-		t.Errorf("Expected file writer error, but got nil ")
+		t.Errorf("Expected file writer error, but got nil")
+	}
+}
+
+func TestCsvWriterWriteRowsFileWriteErrorAtSecondAttempt(t *testing.T) {
+	fw := &TestFileWhichFailsAtSecondAttemptWriter{}
+	writer := NewCsvWriter(fw, "result.csv", "", ",")
+	rows := make([]*map[string]interface{}, 0)
+	rows = append(rows, &map[string]interface{}{"name": "one"})
+	err := writer.WriteRows("some_table", []string{"name"}, rows)
+	if err == nil {
+		t.Errorf("Expected file writer error, but got nil")
 	}
 }
 
@@ -94,6 +105,6 @@ func TestCsvWriterWriteRowsFileHandlerError(t *testing.T) {
 	rows = append(rows, &map[string]interface{}{"name": "one"})
 	err := writer.WriteRows("some_table", []string{"name"}, rows)
 	if err == nil {
-		t.Errorf("Expected write error, but got nil ")
+		t.Errorf("Expected write error, but got nil")
 	}
 }

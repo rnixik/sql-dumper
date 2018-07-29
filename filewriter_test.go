@@ -66,6 +66,31 @@ func (fw *TestFileHandlerErrorWriter) getFileHandler(filename string) (f File, e
 	return nil, fmt.Errorf("Some testing error at getFileHandler")
 }
 
+// TestFileWhichFailsAtSecondAttempt
+
+type TestFileWhichFailsAtSecondAttempt struct {
+	attempt int
+}
+
+func (f *TestFileWhichFailsAtSecondAttempt) WriteString(s string) (n int, err error) {
+	f.attempt += 1
+	if f.attempt > 1 {
+		return 0, fmt.Errorf("Error at second attempt to write file")
+	}
+	return 1, nil
+}
+func (f *TestFileWhichFailsAtSecondAttempt) Close() error {
+	return nil
+}
+
+type TestFileWhichFailsAtSecondAttemptWriter struct {
+}
+
+func (fw *TestFileWhichFailsAtSecondAttemptWriter) getFileHandler(filename string) (f File, err error) {
+	testFile := &TestFileWhichFailsAtSecondAttempt{}
+	return testFile, nil
+}
+
 // Tests on NewOsFileWriter
 
 func TestGetFileHandlerFileExists(t *testing.T) {
