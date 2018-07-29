@@ -245,6 +245,15 @@ Output in stations_for_routes.csv:
 2,102,1
 ```
 
+## Limitations
+
+* It supports only MySQL
+* Not full range of column types is supported
+* It does not support composite index except PK
+* It writes DDL with FK by specified relations in arguments
+* Combined result for one CSV made by INNER JOIN
+* Escaping output values can go wrong
+
 ## License
 
 The MIT License
